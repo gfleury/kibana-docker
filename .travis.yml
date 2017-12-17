@@ -1,0 +1,23 @@
+sudo: required
+services:
+- docker
+language: python
+python:
+- '3.6'
+env:
+  global:
+  - ELASTIC_VERSION=5.2.2
+  - COMMIT=${TRAVIS_COMMIT::8}
+  - secure: J7teLTzgjv6LFPl56JpcUEax/P9lgKHXzQtyAjFsTaugqvLgIXF6ySzwiUeoat9eItFcaUq8q+hurvShXBI3wk88TRwrlJSKYoTlKzMALWm9UVpl7ZgtMztPBOq7a5wPs39JWBNeCC5PG9fzePW8Uq2FSzIrl80M27xo3FXtU9JZw418TV3+bVaB9H+8eIbrpAFflZme+ZF1HmjKUaF4O87hOH/OlsblOBNie92POY+OvyHeDhcl0hwV8voU6313ew/V+aeix+6HEk3KGrUDQGqZ6gX+NKvMJ1LkcpCUcGADKSlMA8om0L/NB8AUgqCDPvhHKTNnBUr6XgD6XNpG6pV9Q6ll3P0gA/ZNMynTcLWsVjcG3v9yNtgPzbmln0P0Gw+4/tlIdonQAeLxWdujw6LCFzNbFJnibG+nsdh3N/tuDmspeYW5yBEpds2ElTrj6YrzFIo/h40tSZtMeZJsK1QEtvYnsK1O/v0TwbXf30ddi/Kjh4wrTAvdRLF9gAQlBjDv6q3zcOmPd/CKK2A7k8TO0LpF+55EeCcUgoUdMxBkGJR/dLJSn1F1lSe4k1fMTPn/GJHtN6LogYkxwSU3e3D9xaJgnX5ck78fKUmvm3HD+R9JEJK8NdgGlmLBQywyiWclfA4/SVwLTBLidrs01GBR6kHQmEiXxgKsok2CAo8=
+  - secure: MaDjKLfXJK5D8Cbbb1oi3mR5j347ad1xPbaja5cnxrdUhrwUNlkvwC37hSODYAcYhhSaRNeA7UJ5gE/+N3QpUYXsyPd4WLmq1aZ43prY0sSaE3xmu+5vse50ypc8qkeWSo9VnCAFWtvkSmHqFcy9tFYVJoWzNLmmLC5vn5puTaZFt5lIOfCcayIsC1YVlIjqogjcawaIL1nKq3+rbaaa2Kthm9sF+8AO+HxAE+9CvAwOzUHW9+3NMSmbkzAiqBN3tUnzw+/3W6zwRm+cuaB20Wzs/1Cz8VbtYCLMCpBkn347qUHiquAA0xyCY5N9y4d5e7SwXNdDWBzt9qi04Uo0OuzEbhaD0Gf8IrA0ydhHSFxXyDuVgtPAJv5h+FzvKKqBpEIHJRUGgMWXLBa0/g+jLL+H29OhbaIJQIed+XoWFIsNFeVCaIRofzpFCZArxGrUUrsSX5Vbz+luEn0VaCDj4CR1deq7JWYFvuPH+HhVuNNB3fXkxxiBiU63J+7z/S/AUPlO+aYJs5GpmvTrZOn16GIPFFsvY77vvacCW024/LAjgp9LQxsETQQVAenM4CZfYdiL7ifhZaHpC3fpBDwlEItMj07D6T8+uYAsQChcCGZNSVWW6TnAFpMwBkziqkuK8yU9dMoehEk+/54yoRWMcLuKxZmjBsX5AYA7LsOrPCw=
+  - secure: Y96XFiJHndW6xa9ofs0woq+RMzzDE+rzkm+P0lfmwRKghYmz9Qay/RFldSKkpGlwRwWaHUFnoM3NSe+PDD1rkOqv/TlnPLqlYjrLb/5tXSowAOzlECNv5Q2UsZ7ulQ3RuXbbA7f7pjkNPLACC7PwyMmOv66ijnwT9s5//LmV3TdCPs7CDiSui1MAhfKuCn9HsnrQMp6eZ/w8XJylh8W3kIo6S6GOX2HP3v22QwsAXexEMHlppWmCXi/XuTysOSvuP898EQCZg1ipTBk+sSIwgTk3ePRZCanEB3hg0wiK6VveZFzXf0XXlXUCYrgEYLCv028Ch2NqxPUBjvP2zU0Qkajp5dvaWjnaiTcy8uZYg1LUIWrjOh9DS8bye8EtpiqikF5mLmEFMfv2bC8axMrzvsKkiKi3CZWpROb/vf77cIE+51j7GkC2T2H7j0OuZv9Lu6t25sZuT1m0EZQlJIbEAkTskfHttuGLQQU9SHXKEmRNVI8V2CBQIyjtO3coyccgMFBANiZYgDtIqkUtFbYB2jPDgVuOARlxOrwQtjLihZ1YbwGRfHoiNoj/pYrrJPdRSMI4ipS1eK5w1wMirkkxH55AfqrBjw0hDWnlCjYb5Zych/qIC/40zzttAfcsKF5inpDxj5d/PFH9WYy1FVRIn6A9cK9u2C6ZLH5drrFLVDw=
+script: make dockerfile
+after_success:
+- docker login -u $DOCKER_USER -p $DOCKER_PASS
+- export REPO=gfleury/kibana-oss
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH
+  ; fi`
+- docker build -f build/kibana/Dockerfile-oss -t $REPO:$COMMIT build/kibana
+- docker tag $REPO:$COMMIT $REPO:$TAG
+- docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+- docker push $REPO
